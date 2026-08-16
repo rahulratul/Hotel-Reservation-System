@@ -11,6 +11,13 @@ function setupGuestFormListeners() {
   const cancelBtn = document.getElementById("guest-btn-cancel");
   const form = document.getElementById("guest-form");
   const modal = document.getElementById("guest-form-modal");
+  const searchInput = document.getElementById("guest-search");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      renderGuestList(e.target.value);
+    });
+  }
 
   if (addBtn) {
     addBtn.addEventListener("click", () => {
@@ -71,8 +78,7 @@ function handleDeleteGuest(id) {
     Storage.remove(STORAGE_KEY_GUESTS, id);
     showNotification("Guest deleted successfully", "success");
     
-    const currentSearch = document.getElementById("guest-search")?.value || "";
-    renderGuestList(currentSearch);
+    renderGuestList(getCurrentSearchTerm());
   }
 }
 
@@ -170,8 +176,7 @@ function handleGuestSubmit(e) {
   document.getElementById("guest-form-modal").classList.remove("active");
   resetGuestForm();
   
-  const currentSearch = document.getElementById("guest-search")?.value || "";
-  renderGuestList(currentSearch);
+  renderGuestList(getCurrentSearchTerm());
 }
 
 function resetGuestForm() {
@@ -183,6 +188,11 @@ function resetGuestForm() {
   
   const title = document.getElementById("guest-form-title");
   if (title) title.textContent = "Add Guest";
+}
+
+function getCurrentSearchTerm() {
+  const searchInput = document.getElementById("guest-search");
+  return searchInput ? searchInput.value : "";
 }
 
 function validateEmail(email) {
