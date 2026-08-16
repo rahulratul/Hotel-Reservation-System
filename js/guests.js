@@ -38,11 +38,41 @@ function setupGuestFormListeners() {
 
 function handleTableClick(e) {
   const editBtn = e.target.closest(".guest-btn-edit");
+  const deleteBtn = e.target.closest(".guest-btn-delete");
   
   if (editBtn) {
     const id = editBtn.getAttribute("data-id");
     openEditModal(id);
     return;
+  }
+  
+  if (deleteBtn) {
+    const id = deleteBtn.getAttribute("data-id");
+    handleDeleteGuest(id);
+    return;
+  }
+}
+
+function handleDeleteGuest(id) {
+  const guest = Storage.getById(STORAGE_KEY_GUESTS, id);
+  if (!guest) return;
+
+  const reservations = Storage.getAll(STORAGE_KEY_RESERVATIONS);
+  const activeReservations = reservations.filter(r => 
+    r.guestId === id && (r.status === "confirmed" || r.status === "checked-in")
+  );
+
+  if (activeReservations.length > 0) {
+    showNotification(`Cannot delete ${guest.name}. They have ${activeReservations.length} active reservation(s).`, "error");
+    return;
+  }
+
+  if (confirm(`Are you sure you want to delete ${guest.name}?`)) {
+    Storage.remove(STORAGE_KEY_GUESTS, id);
+    showNotification("Guest deleted successfully", "success");
+    
+    const currentSearch = document.getElementById("guest-search")?.value || "";
+    renderGuestList(currentSearch);
   }
 }
 
