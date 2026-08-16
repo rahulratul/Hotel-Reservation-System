@@ -75,6 +75,16 @@ function renderReservationList(filters = {}) {
           ? "Checked Out"
           : res.status.charAt(0).toUpperCase() + res.status.slice(1);
 
+      // Action buttons depending on status
+      let actionButtons = "";
+      if (res.status === "confirmed") {
+        actionButtons = `
+          <button type="button" class="btn btn-secondary res-btn-action res-btn-edit" title="Edit Reservation">
+            ✏️ Edit
+          </button>
+        `;
+      }
+
       return `
         <tr data-res-id="${res.id}" class="res-row ${
         res.status === "cancelled" ? "res-row-cancelled" : ""
@@ -99,7 +109,7 @@ function renderReservationList(filters = {}) {
           </td>
           <td>
             <div class="res-actions-cell">
-              <!-- Action buttons will be configured in subsequent commits -->
+              ${actionButtons}
             </div>
           </td>
         </tr>
@@ -136,10 +146,11 @@ function searchAvailableRooms(excludeReservationId) {
   }
 
   const excludeId =
-    excludeReservationId ||
-    (document.getElementById("res-input-id")
+    excludeReservationId !== undefined
+      ? excludeReservationId
+      : document.getElementById("res-input-id")
       ? document.getElementById("res-input-id").value
-      : null);
+      : null;
 
   const rooms = Storage.getAll(STORAGE_KEY_ROOMS);
   const reservations = Storage.getAll(STORAGE_KEY_RESERVATIONS);
@@ -163,7 +174,6 @@ function searchAvailableRooms(excludeReservationId) {
         <p>❌ No rooms available for these dates.</p>
       </div>
     `;
-    // If previously selected room is no longer available, reset selection
     if (stepDetails) stepDetails.style.display = "none";
     if (submitBtn) submitBtn.style.display = "none";
     if (hiddenRoomId) hiddenRoomId.value = "";
@@ -274,8 +284,11 @@ function selectRoom(roomId) {
     `;
   }
 
-  // Populate guest dropdown
-  populateGuestDropdown();
+  // Populate guest dropdown (preserve existing selected value if any)
+  const currentGuestId = document.getElementById("res-input-guest")
+    ? document.getElementById("res-input-guest").value
+    : "";
+  populateGuestDropdown(currentGuestId);
 
   // Show Step 2 and submit button
   if (stepDetails) stepDetails.style.display = "block";
@@ -360,6 +373,49 @@ function openReservationModal() {
 }
 
 /**
+ * Opens the Reservation modal in edit mode for a specific reservation.
+ * @param {string} reservationId - ID of the reservation to edit.
+ */
+function openEditReservationModal(reservationId) {
+  const reservation = Storage.getById(STORAGE_KEY_RESERVATIONS, reservationId);
+  if (!reservation) {
+    showNotification("Reservation not found.", "error");
+    return;
+  }
+
+  if (reservation.status !== "confirmed") {
+    showNotification("Only confirmed reservations can be edited.", "error");
+    return;
+  }
+
+  const modal = document.getElementById("res-form-modal");
+  const formTitle = document.getElementById("res-form-title");
+  const hiddenId = document.getElementById("res-input-id");
+  const checkInInput = document.getElementById("res-input-checkin");
+  const checkOutInput = document.getElementById("res-input-checkout");
+
+  resetReservationForm();
+
+  if (formTitle) formTitle.textContent = "Edit Reservation";
+  if (hiddenId) hiddenId.value = reservation.id;
+  if (checkInInput) checkInInput.value = reservation.checkIn;
+  if (checkOutInput) checkOutInput.value = reservation.checkOut;
+
+  // Run availability search excluding the current reservation
+  searchAvailableRooms(reservation.id);
+
+  // Auto-select current room
+  selectRoom(reservation.roomId);
+
+  // Populate guest dropdown and pre-select current guest
+  populateGuestDropdown(reservation.guestId);
+
+  if (modal) {
+    modal.classList.add("active");
+  }
+}
+
+/**
  * Closes the Reservation modal and resets state.
  */
 function closeReservationModal() {
@@ -420,7 +476,11 @@ function setupReservationEventListeners() {
   // Search Available Rooms Button
   const btnSearch = document.getElementById("res-btn-search");
   if (btnSearch) {
-    btnSearch.addEventListener("click", () => searchAvailableRooms());
+    btnSearch.addEventListener("click", () => {
+      const hiddenId = document.getElementById("res-input-id");
+      const excludeId = hiddenId && hiddenId.value ? hiddenId.value : null;
+      searchAvailableRooms(excludeId);
+    });
   }
 
   // Room Card / Select Button delegation
@@ -436,6 +496,21 @@ function setupReservationEventListeners() {
       } else if (card) {
         const roomId = card.getAttribute("data-room-id");
         selectRoom(roomId);
+      }
+    });
+  }
+
+  // Table Body Action Delegation
+  const tableBody = document.getElementById("res-table-body");
+  if (tableBody) {
+    tableBody.addEventListener("click", (e) => {
+      const editBtn = e.target.closest(".res-btn-edit");
+      if (editBtn) {
+        const row = editBtn.closest("tr");
+        if (row) {
+          const resId = row.getAttribute("data-res-id");
+          openEditReservationModal(resId);
+        }
       }
     });
   }
@@ -484,8 +559,28 @@ function setupReservationEventListeners() {
       const nights = calculateNights(checkIn, checkOut);
       const totalPrice = nights * room.pricePerNight;
 
-      if (!resId) {
-        // Create new reservation
+      if (resId) {
+        // Edit mode: Update existing reservation preserving id and createdAt
+        const existing = Storage.getById(STORAGE_KEY_RESERVATIONS, resId);
+        if (!existing) {
+          showNotification("Reservation record not found.", "error");
+          return;
+        }
+
+        const updatedReservation = {
+          ...existing,
+          guestId: guestId,
+          roomId: roomId,
+          checkIn: checkIn,
+          checkOut: checkOut,
+          nights: nights,
+          totalPrice: totalPrice
+        };
+
+        Storage.save(STORAGE_KEY_RESERVATIONS, updatedReservation);
+        showNotification("Reservation updated successfully!", "success");
+      } else {
+        // Create mode
         const newReservation = {
           id: generateId("res"),
           guestId: guestId,
