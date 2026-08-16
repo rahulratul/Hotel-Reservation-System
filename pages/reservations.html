@@ -1,4 +1,61 @@
-<section class="page-section">
-  <h2>Reservations</h2>
-  <p>This section is under development.</p>
-</section>
+<div class="res-container">
+  <!-- Page Header -->
+  <header class="res-header">
+    <div class="res-header-info">
+      <h2 class="res-title">Reservations</h2>
+      <p class="res-subtitle">Manage guest bookings, availability, and room stays.</p>
+    </div>
+    <div class="res-header-actions">
+      <button type="button" id="res-btn-add" class="btn btn-primary">
+        <span>➕</span>
+        <span>New Reservation</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter & Control Bar -->
+  <div class="res-filter-bar card-custom">
+    <div class="res-filter-group">
+      <label for="res-filter-status" class="form-label">Status Filter</label>
+      <select id="res-filter-status" class="form-control">
+        <option value="all">All Statuses</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="checked-in">Checked In</option>
+        <option value="checked-out">Checked Out</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <div class="res-count-wrapper">
+      <span id="res-count" class="res-count-badge">Showing 0 reservations</span>
+    </div>
+  </div>
+
+  <!-- Reservation Table Container -->
+  <div class="res-table-wrapper table-responsive">
+    <table id="res-table" class="table-custom">
+      <thead>
+        <tr>
+          <th>Guest</th>
+          <th>Room</th>
+          <th>Type</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Nights</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="res-table-body">
+        <!-- Rows rendered via JS -->
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div id="res-empty" class="res-empty-state" style="display: none;">
+      <div class="res-empty-icon">📅</div>
+      <h3 class="res-empty-title">No reservations found</h3>
+      <p class="res-empty-desc">There are no reservations matching your criteria. Click "New Reservation" to create one.</p>
+    </div>
+  </div>
+</div>
