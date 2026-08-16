@@ -1,1 +1,50 @@
-/* css/guests.css */
+/* =====================
+   GUEST MANAGEMENT STYLES
+   ===================== */
+
+.guest-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.guest-header-title h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.guest-header-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+#guest-search {
+  width: 250px;
+}
+
+.guest-count-container {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-light);
+  font-size: var(--font-size-sm);
+}
+
+.guest-empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-light);
+  font-size: var(--font-size-lg);
+}
+
+/* Modal specific overrides if any */
+#guest-input-address {
+  resize: vertical;
+  min-height: 80px;
+}

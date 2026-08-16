@@ -1,4 +1,36 @@
-<section class="page-section">
-  <h2>Guests</h2>
-  <p>This section is under development.</p>
-</section>
+<div class="guest-header">
+  <div class="guest-header-title">
+    <h2>Guest Management</h2>
+  </div>
+  <div class="guest-header-actions">
+    <input type="text" id="guest-search" class="form-control" placeholder="Search by name or email...">
+    <button type="button" id="guest-btn-add" class="btn btn-primary">Add Guest</button>
+  </div>
+</div>
+
+<div class="guest-count-container">
+  <span id="guest-count"></span>
+</div>
+
+<div class="table-responsive">
+  <table id="guest-table" class="table-custom">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>NID</th>
+        <th>Address</th>
+        <th>Registered</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="guest-table-body">
+      <!-- Guest rows will be rendered here -->
+    </tbody>
+  </table>
+</div>
+
+<div id="guest-empty" class="guest-empty-state" style="display: none;">
+  <p>No guests registered</p>
+</div>
