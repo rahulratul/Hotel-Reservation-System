@@ -1,24 +1,41 @@
 // js/reservations.js
 
+/**
+ * Storage keys used across the Hotel Reservation System.
+ */
 const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
 const STORAGE_KEY_ROOMS = "hrs_rooms";
 const STORAGE_KEY_GUESTS = "hrs_guests";
 
 /**
  * Initializes the Reservations module on page load.
+ * Sets up initial render with active filters and binds DOM events.
  */
 function initReservations() {
-  renderReservationList();
+  renderReservationList(getCurrentFilters());
   setupReservationEventListeners();
 }
 
 /**
- * Renders the reservations table based on optional filters.
+ * Retrieves the currently selected filter options from the UI.
+ * @returns {Object} An object containing the current filter values (e.g., status).
+ */
+function getCurrentFilters() {
+  const statusSelect = document.getElementById("res-filter-status");
+  return {
+    status: statusSelect ? statusSelect.value : "all"
+  };
+}
+
+/**
+ * Renders the reservations table based on filter criteria.
+ * Resolves guest names and room numbers dynamically from storage.
  * @param {Object} [filters={}] - Filter criteria such as status.
  */
 function renderReservationList(filters = {}) {
   const tableBody = document.getElementById("res-table-body");
   const emptyState = document.getElementById("res-empty");
+  const emptyDesc = document.querySelector(".res-empty-desc");
   const table = document.getElementById("res-table");
   const countBadge = document.getElementById("res-count");
 
@@ -36,7 +53,7 @@ function renderReservationList(filters = {}) {
     );
   }
 
-  // Update count badge
+  // Update count badge: "Showing X of Y reservations"
   if (countBadge) {
     countBadge.textContent = `Showing ${filteredReservations.length} of ${allReservations.length} reservations`;
   }
@@ -45,14 +62,24 @@ function renderReservationList(filters = {}) {
   if (filteredReservations.length === 0) {
     tableBody.innerHTML = "";
     if (table) table.style.display = "none";
-    if (emptyState) emptyState.style.display = "block";
+    if (emptyState) {
+      emptyState.style.display = "block";
+      if (emptyDesc) {
+        if (allReservations.length === 0) {
+          emptyDesc.textContent =
+            "There are no reservations in the system yet. Click \"New Reservation\" to create one.";
+        } else {
+          emptyDesc.textContent = `No reservations found matching the status filter "${filters.status}".`;
+        }
+      }
+    }
     return;
   }
 
   if (table) table.style.display = "table";
   if (emptyState) emptyState.style.display = "none";
 
-  // Build rows
+  // Build rows dynamically
   tableBody.innerHTML = filteredReservations
     .map((res) => {
       const guest = guests.find((g) => g.id === res.guestId);
@@ -75,7 +102,7 @@ function renderReservationList(filters = {}) {
           ? "Checked Out"
           : res.status.charAt(0).toUpperCase() + res.status.slice(1);
 
-      // Action buttons depending on status
+      // Action buttons depending on lifecycle status
       let actionButtons = "";
       if (res.status === "confirmed") {
         actionButtons = `
@@ -137,7 +164,8 @@ function renderReservationList(filters = {}) {
 
 /**
  * Searches for rooms that are available between the chosen check-in and check-out dates.
- * @param {string} [excludeReservationId] - Optional reservation ID to exclude from conflict checks.
+ * Uses isRoomAvailable from utils.js to verify non-overlapping reservations.
+ * @param {string} [excludeReservationId] - Optional reservation ID to exclude when editing.
  */
 function searchAvailableRooms(excludeReservationId) {
   const checkInInput = document.getElementById("res-input-checkin");
@@ -247,8 +275,8 @@ function searchAvailableRooms(excludeReservationId) {
 }
 
 /**
- * Selects a room from the available search results and reveals Step 2.
- * @param {string} roomId - ID of the selected room.
+ * Selects a room from the available search results and reveals Step 2 with calculated prices.
+ * @param {string} roomId - ID of the room to select.
  */
 function selectRoom(roomId) {
   const hiddenRoomId = document.getElementById("res-input-room-id");
@@ -335,7 +363,7 @@ function selectRoom(roomId) {
 }
 
 /**
- * Populates the guest selection dropdown with registered guests.
+ * Populates the guest selection dropdown with registered guests from storage.
  * @param {string} [selectedGuestId] - Optional guest ID to pre-select.
  */
 function populateGuestDropdown(selectedGuestId) {
@@ -363,7 +391,7 @@ function populateGuestDropdown(selectedGuestId) {
 }
 
 /**
- * Opens the Reservation modal and prepares it for new entry.
+ * Opens the Reservation modal and prepares it for a new reservation entry.
  */
 function openReservationModal() {
   const modal = document.getElementById("res-form-modal");
@@ -391,6 +419,7 @@ function openReservationModal() {
 
 /**
  * Opens the Reservation modal in edit mode for a specific reservation.
+ * Re-runs availability search excluding this reservation to allow keeping the same room.
  * @param {string} reservationId - ID of the reservation to edit.
  */
 function openEditReservationModal(reservationId) {
@@ -434,6 +463,7 @@ function openEditReservationModal(reservationId) {
 
 /**
  * Handles checking in a guest for a confirmed reservation.
+ * Does not modify room data, as availability is dynamically computed.
  * @param {string} reservationId - ID of the reservation to check in.
  */
 function checkInReservation(reservationId) {
@@ -454,11 +484,12 @@ function checkInReservation(reservationId) {
   reservation.status = "checked-in";
   Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
   showNotification(`Guest checked in to Room ${roomDisplay}`, "success");
-  renderReservationList();
+  renderReservationList(getCurrentFilters());
 }
 
 /**
  * Handles checking out a guest for an active checked-in reservation.
+ * Releases the room for that date range in dynamic searches.
  * @param {string} reservationId - ID of the reservation to check out.
  */
 function checkOutReservation(reservationId) {
@@ -479,11 +510,12 @@ function checkOutReservation(reservationId) {
   reservation.status = "checked-out";
   Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
   showNotification(`Guest checked out from Room ${roomDisplay}`, "success");
-  renderReservationList();
+  renderReservationList(getCurrentFilters());
 }
 
 /**
  * Cancels an active reservation after user confirmation.
+ * Ignores cancelled reservations in subsequent availability checks.
  * @param {string} reservationId - ID of the reservation to cancel.
  */
 function cancelReservation(reservationId) {
@@ -503,7 +535,7 @@ function cancelReservation(reservationId) {
     reservation.status = "cancelled";
     Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
     showNotification("Reservation cancelled successfully!", "success");
-    renderReservationList();
+    renderReservationList(getCurrentFilters());
   }
 }
 
@@ -519,7 +551,7 @@ function closeReservationModal() {
 }
 
 /**
- * Resets the Reservation form and temporary selection UI.
+ * Resets the Reservation form fields and hides step 2 components.
  */
 function resetReservationForm() {
   const form = document.getElementById("res-form");
@@ -545,7 +577,7 @@ function resetReservationForm() {
 }
 
 /**
- * Attaches event listeners for the Reservation module.
+ * Attaches event listeners for all interactive components in the Reservations module.
  */
 function setupReservationEventListeners() {
   // New Reservation Button
@@ -563,6 +595,14 @@ function setupReservationEventListeners() {
   const btnCancel = document.getElementById("res-btn-cancel");
   if (btnCancel) {
     btnCancel.addEventListener("click", closeReservationModal);
+  }
+
+  // Filter Dropdown Change Listener
+  const filterStatus = document.getElementById("res-filter-status");
+  if (filterStatus) {
+    filterStatus.addEventListener("change", () => {
+      renderReservationList(getCurrentFilters());
+    });
   }
 
   // Search Available Rooms Button
@@ -674,7 +714,7 @@ function setupReservationEventListeners() {
       const totalPrice = nights * room.pricePerNight;
 
       if (resId) {
-        // Edit mode: Update existing reservation preserving id and createdAt
+        // Edit mode: Update existing reservation preserving id, status, and createdAt
         const existing = Storage.getById(STORAGE_KEY_RESERVATIONS, resId);
         if (!existing) {
           showNotification("Reservation record not found.", "error");
@@ -712,7 +752,7 @@ function setupReservationEventListeners() {
       }
 
       closeReservationModal();
-      renderReservationList();
+      renderReservationList(getCurrentFilters());
     });
   }
 }

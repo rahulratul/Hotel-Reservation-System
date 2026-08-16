@@ -149,6 +149,22 @@
   font-weight: 600;
 }
 
+.btn-warning {
+  background-color: var(--color-warning);
+  color: #ffffff;
+}
+
+.btn-warning:hover {
+  background-color: #b45309;
+  transform: translateY(-1px);
+}
+
+.res-no-actions {
+  color: var(--color-text-light);
+  font-size: var(--font-size-sm);
+  padding: 0 var(--spacing-sm);
+}
+
 /* Empty State */
 .res-empty-state {
   text-align: center;
@@ -171,7 +187,7 @@
 .res-empty-desc {
   font-size: var(--font-size-sm);
   color: var(--color-text-light);
-  max-width: 400px;
+  max-width: 450px;
   margin: 0 auto;
 }
 
