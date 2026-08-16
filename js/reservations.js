@@ -91,10 +91,15 @@ function renderReservationList(filters = {}) {
         `;
       } else if (res.status === "checked-in") {
         actionButtons = `
+          <button type="button" class="btn btn-warning res-btn-action res-btn-checkout" title="Check-out Guest">
+            🚪 Check Out
+          </button>
           <button type="button" class="btn btn-danger res-btn-action res-btn-cancel-action" title="Cancel Reservation">
             🚫 Cancel
           </button>
         `;
+      } else {
+        actionButtons = `<span class="res-no-actions">&mdash;</span>`;
       }
 
       return `
@@ -453,6 +458,31 @@ function checkInReservation(reservationId) {
 }
 
 /**
+ * Handles checking out a guest for an active checked-in reservation.
+ * @param {string} reservationId - ID of the reservation to check out.
+ */
+function checkOutReservation(reservationId) {
+  const reservation = Storage.getById(STORAGE_KEY_RESERVATIONS, reservationId);
+  if (!reservation) {
+    showNotification("Reservation not found.", "error");
+    return;
+  }
+
+  if (reservation.status !== "checked-in") {
+    showNotification("Only checked-in reservations can be checked out.", "error");
+    return;
+  }
+
+  const room = Storage.getById(STORAGE_KEY_ROOMS, reservation.roomId);
+  const roomDisplay = room ? room.roomNumber : "Unknown";
+
+  reservation.status = "checked-out";
+  Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
+  showNotification(`Guest checked out from Room ${roomDisplay}`, "success");
+  renderReservationList();
+}
+
+/**
  * Cancels an active reservation after user confirmation.
  * @param {string} reservationId - ID of the reservation to cancel.
  */
@@ -567,6 +597,7 @@ function setupReservationEventListeners() {
   if (tableBody) {
     tableBody.addEventListener("click", (e) => {
       const checkInBtn = e.target.closest(".res-btn-checkin");
+      const checkOutBtn = e.target.closest(".res-btn-checkout");
       const editBtn = e.target.closest(".res-btn-edit");
       const cancelBtn = e.target.closest(".res-btn-cancel-action");
 
@@ -575,6 +606,12 @@ function setupReservationEventListeners() {
         if (row) {
           const resId = row.getAttribute("data-res-id");
           checkInReservation(resId);
+        }
+      } else if (checkOutBtn) {
+        const row = checkOutBtn.closest("tr");
+        if (row) {
+          const resId = row.getAttribute("data-res-id");
+          checkOutReservation(resId);
         }
       } else if (editBtn) {
         const row = editBtn.closest("tr");
