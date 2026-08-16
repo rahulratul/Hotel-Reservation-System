@@ -21,7 +21,41 @@
 </div>
 
 <div class="dashboard-section" id="dashboard-res-stats">
-  <!-- Placeholder for reservation stats -->
+  <h3 class="dashboard-section-title">Reservation Overview</h3>
+  <div class="dashboard-stats-grid">
+    <div class="dashboard-stat-card border-primary">
+      <div class="dashboard-stat-label">Total Reservations</div>
+      <div class="dashboard-stat-value text-primary" id="dashboard-stat-total-res">0</div>
+    </div>
+    <div class="dashboard-stat-card border-secondary">
+      <div class="dashboard-stat-label">Confirmed</div>
+      <div class="dashboard-stat-value text-secondary" id="dashboard-stat-confirmed">0</div>
+    </div>
+    <div class="dashboard-stat-card border-warning">
+      <div class="dashboard-stat-label">Checked In</div>
+      <div class="dashboard-stat-value text-warning" id="dashboard-stat-checkedin">0</div>
+    </div>
+    <div class="dashboard-stat-card border-success">
+      <div class="dashboard-stat-label">Checked Out</div>
+      <div class="dashboard-stat-value text-success" id="dashboard-stat-checkedout">0</div>
+    </div>
+    <div class="dashboard-stat-card border-danger">
+      <div class="dashboard-stat-label">Cancelled</div>
+      <div class="dashboard-stat-value text-danger" id="dashboard-stat-cancelled">0</div>
+    </div>
+  </div>
+  
+  <h3 class="dashboard-section-title" style="margin-top: var(--spacing-xl);">Business Overview</h3>
+  <div class="dashboard-stats-grid">
+    <div class="dashboard-stat-card border-primary">
+      <div class="dashboard-stat-label">Total Guests</div>
+      <div class="dashboard-stat-value text-primary" id="dashboard-stat-total-guests">0</div>
+    </div>
+    <div class="dashboard-stat-card border-success">
+      <div class="dashboard-stat-label">Total Revenue</div>
+      <div class="dashboard-stat-value text-success" id="dashboard-stat-revenue">$0</div>
+    </div>
+  </div>
 </div>
 
 <div class="dashboard-section" id="dashboard-upcoming">
