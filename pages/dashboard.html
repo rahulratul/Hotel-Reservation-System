@@ -59,5 +59,24 @@
 </div>
 
 <div class="dashboard-section" id="dashboard-upcoming">
-  <!-- Placeholder for upcoming arrivals -->
+  <h3 class="dashboard-section-title">Upcoming Arrivals (Next 7 Days)</h3>
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Guest</th>
+          <th>Room</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Nights</th>
+        </tr>
+      </thead>
+      <tbody id="dashboard-upcoming-list">
+        <!-- Upcoming arrivals will be rendered here -->
+      </tbody>
+    </table>
+  </div>
+  <div id="dashboard-empty-upcoming" class="guest-empty-state" style="display: none;">
+    <p>No upcoming arrivals</p>
+  </div>
 </div>

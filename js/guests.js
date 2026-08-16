@@ -1,11 +1,18 @@
 const STORAGE_KEY_GUESTS = "hrs_guests";
 const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
 
+/**
+ * Initializes the guest management page by rendering the guest list
+ * and setting up form event listeners.
+ */
 function initGuests() {
   renderGuestList();
   setupGuestFormListeners();
 }
 
+/**
+ * Sets up event listeners for the guest form modal.
+ */
 function setupGuestFormListeners() {
   const addBtn = document.getElementById("guest-btn-add");
   const cancelBtn = document.getElementById("guest-btn-cancel");
@@ -43,6 +50,10 @@ function setupGuestFormListeners() {
   }
 }
 
+/**
+ * Handles clicks on the guest table (Edit and Delete buttons).
+ * @param {Event} e - The click event
+ */
 function handleTableClick(e) {
   const editBtn = e.target.closest(".guest-btn-edit");
   const deleteBtn = e.target.closest(".guest-btn-delete");
@@ -60,6 +71,10 @@ function handleTableClick(e) {
   }
 }
 
+/**
+ * Handles deleting a guest after verifying they have no active reservations.
+ * @param {string} id - The ID of the guest to delete
+ */
 function handleDeleteGuest(id) {
   const guest = Storage.getById(STORAGE_KEY_GUESTS, id);
   if (!guest) return;
@@ -82,6 +97,10 @@ function handleDeleteGuest(id) {
   }
 }
 
+/**
+ * Opens the edit modal and pre-fills it with the guest's data.
+ * @param {string} id - The ID of the guest to edit
+ */
 function openEditModal(id) {
   const guest = Storage.getById(STORAGE_KEY_GUESTS, id);
   if (!guest) return;
@@ -97,6 +116,11 @@ function openEditModal(id) {
   document.getElementById("guest-form-modal").classList.add("active");
 }
 
+/**
+ * Handles the submission of the guest form (Add or Edit).
+ * Validates fields and saves the guest.
+ * @param {Event} e - The submit event
+ */
 function handleGuestSubmit(e) {
   e.preventDefault();
   
@@ -179,6 +203,9 @@ function handleGuestSubmit(e) {
   renderGuestList(getCurrentSearchTerm());
 }
 
+/**
+ * Resets the guest form and modal title.
+ */
 function resetGuestForm() {
   const form = document.getElementById("guest-form");
   if (form) form.reset();
@@ -190,15 +217,28 @@ function resetGuestForm() {
   if (title) title.textContent = "Add Guest";
 }
 
+/**
+ * Gets the current search term from the search input.
+ * @returns {string} The current search term
+ */
 function getCurrentSearchTerm() {
   const searchInput = document.getElementById("guest-search");
   return searchInput ? searchInput.value : "";
 }
 
+/**
+ * Validates an email address.
+ * @param {string} email - The email to validate
+ * @returns {boolean} True if the email is valid
+ */
 function validateEmail(email) {
   return email.includes("@") && email.includes(".");
 }
 
+/**
+ * Renders the guest list table, filtering by search term if provided.
+ * @param {string} searchTerm - The search term to filter by
+ */
 function renderGuestList(searchTerm = "") {
   const tableBody = document.getElementById("guest-table-body");
   const emptyState = document.getElementById("guest-empty");
