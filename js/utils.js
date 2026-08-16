@@ -20,8 +20,9 @@ function getTodayString() {
   return new Date().toISOString().split("T")[0];
 }
 
-function isRoomAvailable(roomId, checkIn, checkOut, reservations, excludeReservationId) {
-  return !reservations.some(r => {
+function isRoomAvailable(roomId, checkIn, checkOut, reservations = [], excludeReservationId) {
+  const resArray = reservations || [];
+  return !resArray.some(r => {
     if (r.roomId !== roomId) return false;
     if (r.status === "cancelled" || r.status === "checked-out") return false;
     if (excludeReservationId && r.id === excludeReservationId) return false;
