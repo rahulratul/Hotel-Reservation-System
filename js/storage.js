@@ -1,5 +1,9 @@
 // js/storage.js
 
+const STORAGE_KEY_ROOMS = "hrs_rooms";
+const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
+const STORAGE_KEY_GUESTS = "hrs_guests";
+
 const Storage = {
   getAll(key) {
     const data = localStorage.getItem(key);

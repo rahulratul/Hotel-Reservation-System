@@ -1,5 +1,4 @@
-const STORAGE_KEY_GUESTS = "hrs_guests";
-const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
+// js/guests.js
 
 /**
  * Initializes the guest management page by rendering the guest list

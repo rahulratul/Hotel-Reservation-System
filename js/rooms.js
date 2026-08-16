@@ -1,8 +1,5 @@
 // js/rooms.js
 
-const STORAGE_KEY_ROOMS = "hrs_rooms";
-const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
-
 // Capacity mapping based on room type
 const CAPACITY_MAP = {
   single: 1,

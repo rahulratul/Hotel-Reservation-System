@@ -1,13 +1,6 @@
 // js/reservations.js
 
 /**
- * Storage keys used across the Hotel Reservation System.
- */
-const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
-const STORAGE_KEY_ROOMS = "hrs_rooms";
-const STORAGE_KEY_GUESTS = "hrs_guests";
-
-/**
  * Initializes the Reservations module on page load.
  * Sets up initial render with active filters and binds DOM events.
  */
