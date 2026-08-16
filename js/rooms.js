@@ -218,11 +218,34 @@ function handleEditRoom(roomId) {
 }
 
 /**
- * Placeholder for deleting a room.
+ * Deletes a room from the catalog after checking for active reservations.
  * @param {string} roomId
  */
 function handleDeleteRoom(roomId) {
-  // TODO: Member A implements in Commit 4
+  const room = Storage.getById(STORAGE_KEY_ROOMS, roomId);
+  if (!room) {
+    showNotification("Room not found.", "error");
+    return;
+  }
+
+  // Fetch reservations to check if this room has active bookings
+  const reservations = Storage.getAll(STORAGE_KEY_RESERVATIONS);
+  const activeReservations = reservations.filter(res => 
+    res.roomId === roomId && (res.status === "confirmed" || res.status === "checked-in")
+  );
+
+  if (activeReservations.length > 0) {
+    showNotification(`Cannot delete Room ${room.roomNumber}. It has ${activeReservations.length} active reservation(s).`, "error");
+    return;
+  }
+
+  // Ask for confirmation
+  const confirmed = window.confirm(`Are you sure you want to remove Room ${room.roomNumber} from the catalog?`);
+  if (confirmed) {
+    Storage.remove(STORAGE_KEY_ROOMS, roomId);
+    showNotification(`Room ${room.roomNumber} removed from catalog.`, "success");
+    renderRoomCatalog(getCurrentFilters());
+  }
 }
 
 /**
