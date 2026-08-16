@@ -113,9 +113,35 @@ function renderRoomCatalog(filters = { type: "all" }) {
     rooms = rooms.filter(room => room.type === filters.type);
   }
 
+  // Get all reservations to determine availability
+  const reservations = Storage.getAll(STORAGE_KEY_RESERVATIONS);
+  const today = getTodayString();
+  
+  // Calculate tomorrow safely in local timezone
+  const todayDate = new Date(today + "T00:00:00");
+  todayDate.setDate(todayDate.getDate() + 1);
+  const yyyy = todayDate.getFullYear();
+  const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(todayDate.getDate()).padStart(2, '0');
+  const tomorrow = `${yyyy}-${mm}-${dd}`;
+
+  let availableCount = 0;
+  rooms.forEach(room => {
+    room.isAvailableToday = isRoomAvailable(room.id, today, tomorrow, reservations);
+    if (room.isAvailableToday) {
+      availableCount++;
+    }
+  });
+
   // Update room count display
   if (roomCountDisplay) {
     roomCountDisplay.textContent = rooms.length;
+  }
+
+  // Update availability summary
+  const availabilitySummary = document.getElementById("room-availability-summary");
+  if (availabilitySummary) {
+    availabilitySummary.textContent = `${availableCount} of ${rooms.length} rooms available today`;
   }
 
   // Check if catalog is empty
@@ -138,11 +164,16 @@ function renderRoomCatalog(filters = { type: "all" }) {
     // Room type-based background colors class
     const cardBgClass = `room-card-header-${room.type}`;
 
+    // Availability badge styling
+    const badgeClass = room.isAvailableToday ? "room-badge-available" : "room-badge-reserved";
+    const badgeText = room.isAvailableToday ? "Available Now" : "Reserved";
+
     html += `
       <article class="card-custom room-card" data-room-id="${room.id}">
         <div class="room-card-header ${cardBgClass}">
           <span class="room-card-number">${room.roomNumber}</span>
           <span class="room-type-badge badge-${room.type}">${room.type}</span>
+          <span class="room-availability-badge ${badgeClass}">${badgeText}</span>
         </div>
         <div class="room-card-body">
           <div class="room-price-info">
