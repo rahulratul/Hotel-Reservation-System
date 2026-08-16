@@ -1,4 +1,125 @@
-<section class="page-section">
-  <h2>Rooms</h2>
-  <p>This section is under development.</p>
-</section>
+<div class="room-page-container">
+  <!-- Page Header -->
+  <div class="room-header">
+    <div class="room-title-area">
+      <h2>Room Catalog</h2>
+      <p id="room-availability-summary" class="room-availability-summary">Checking availability...</p>
+    </div>
+    <div class="room-action-area">
+      <button id="room-btn-add" class="btn btn-primary" type="button">
+        <span class="btn-icon">➕</span> Add New Room
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter and Stats Bar -->
+  <div class="room-filter-bar">
+    <div class="filter-group">
+      <label for="room-filter-type" class="filter-label">Filter by Type</label>
+      <select id="room-filter-type" class="form-control filter-select">
+        <option value="all">All Room Types</option>
+        <option value="single">Single</option>
+        <option value="double">Double</option>
+        <option value="suite">Suite</option>
+        <option value="deluxe">Deluxe</option>
+      </select>
+    </div>
+    <div class="stats-group">
+      <span class="stats-label">Total Rooms:</span>
+      <span id="room-count" class="stats-value">0</span>
+    </div>
+  </div>
+
+  <!-- Catalog Grid Container -->
+  <div id="room-list" class="room-grid">
+    <!-- Room cards will be dynamically injected here -->
+  </div>
+
+  <!-- Empty State -->
+  <div id="room-empty" class="room-empty-state" style="display: none;">
+    <div class="empty-icon">🛏️</div>
+    <h3>No Rooms Found</h3>
+    <p>There are no rooms matching the selected criteria. Add a new room to get started.</p>
+  </div>
+</div>
+
+<!-- Add/Edit Room Modal Overlay (Placeholder for Commit 2/3) -->
+<div id="room-form-modal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 id="room-form-title">Add Room</h3>
+      <button id="room-btn-close-modal" class="btn-close" type="button">&times;</button>
+    </div>
+    <form id="room-form">
+      <div class="modal-body">
+        <input type="hidden" id="room-input-id">
+        
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="room-input-number" class="form-label">Room Number</label>
+            <input type="text" id="room-input-number" class="form-control" placeholder="e.g. 101" required>
+          </div>
+          <div class="form-group col-6">
+            <label for="room-input-type" class="form-label">Room Type</label>
+            <select id="room-input-type" class="form-control" required>
+              <option value="" disabled selected>Select Type</option>
+              <option value="single">Single</option>
+              <option value="double">Double</option>
+              <option value="suite">Suite</option>
+              <option value="deluxe">Deluxe</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-6">
+            <label for="room-input-capacity" class="form-label">Capacity (Guests)</label>
+            <input type="number" id="room-input-capacity" class="form-control" readonly>
+          </div>
+          <div class="form-group col-6">
+            <label for="room-input-price" class="form-label">Price Per Night ($)</label>
+            <input type="number" id="room-input-price" class="form-control" min="1" placeholder="e.g. 80" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="room-input-floor" class="form-label">Floor</label>
+          <input type="number" id="room-input-floor" class="form-control" min="1" placeholder="e.g. 1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Amenities</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="wifi"> Wifi
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="tv"> TV
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="ac"> AC
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="minibar"> Minibar
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="balcony"> Balcony
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" class="room-amenity-checkbox" value="safe"> In-room Safe
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="room-input-description" class="form-label">Description</label>
+          <textarea id="room-input-description" class="form-control" rows="3" placeholder="Brief description of the room..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="room-btn-cancel" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="room-btn-submit" class="btn btn-primary" type="submit">Save Room</button>
+      </div>
+    </form>
+  </div>
+</div>
