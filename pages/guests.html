@@ -34,3 +34,46 @@
 <div id="guest-empty" class="guest-empty-state" style="display: none;">
   <p>No guests registered</p>
 </div>
+
+<!-- Add/Edit Guest Modal -->
+<div id="guest-form-modal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3 id="guest-form-title">Add Guest</h3>
+    </div>
+    <div class="modal-body">
+      <form id="guest-form">
+        <input type="hidden" id="guest-input-id">
+        
+        <div class="form-group">
+          <label for="guest-input-name" class="form-label">Name *</label>
+          <input type="text" id="guest-input-name" class="form-control" required minlength="2">
+        </div>
+        
+        <div class="form-group">
+          <label for="guest-input-email" class="form-label">Email *</label>
+          <input type="email" id="guest-input-email" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="guest-input-phone" class="form-label">Phone *</label>
+          <input type="tel" id="guest-input-phone" class="form-control" required minlength="8">
+        </div>
+        
+        <div class="form-group">
+          <label for="guest-input-nid" class="form-label">NID/Passport *</label>
+          <input type="text" id="guest-input-nid" class="form-control" required placeholder="National ID or Passport">
+        </div>
+        
+        <div class="form-group">
+          <label for="guest-input-address" class="form-label">Address</label>
+          <textarea id="guest-input-address" class="form-control"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="guest-btn-cancel" class="btn btn-secondary">Cancel</button>
+      <button type="submit" form="guest-form" id="guest-btn-submit" class="btn btn-primary">Save Guest</button>
+    </div>
+  </div>
+</div>

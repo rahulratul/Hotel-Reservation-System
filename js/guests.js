@@ -3,6 +3,115 @@ const STORAGE_KEY_RESERVATIONS = "hrs_reservations";
 
 function initGuests() {
   renderGuestList();
+  setupGuestFormListeners();
+}
+
+function setupGuestFormListeners() {
+  const addBtn = document.getElementById("guest-btn-add");
+  const cancelBtn = document.getElementById("guest-btn-cancel");
+  const form = document.getElementById("guest-form");
+  const modal = document.getElementById("guest-form-modal");
+
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      resetGuestForm();
+      modal.classList.add("active");
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      modal.classList.remove("active");
+      resetGuestForm();
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", handleGuestSubmit);
+  }
+}
+
+function handleGuestSubmit(e) {
+  e.preventDefault();
+  
+  const idInput = document.getElementById("guest-input-id").value;
+  const name = document.getElementById("guest-input-name").value.trim();
+  const email = document.getElementById("guest-input-email").value.trim();
+  const phone = document.getElementById("guest-input-phone").value.trim();
+  const nid = document.getElementById("guest-input-nid").value.trim();
+  const address = document.getElementById("guest-input-address").value.trim();
+  
+  // Validation
+  const reqCheck = validateRequired([
+    { value: name, name: "Name" },
+    { value: email, name: "Email" },
+    { value: phone, name: "Phone" },
+    { value: nid, name: "NID/Passport" }
+  ]);
+  
+  if (!reqCheck.valid) {
+    showNotification(reqCheck.message, "error");
+    return;
+  }
+  
+  if (name.length < 2) {
+    showNotification("Name must be at least 2 characters long", "error");
+    return;
+  }
+  
+  if (!validateEmail(email)) {
+    showNotification("Please enter a valid email address", "error");
+    return;
+  }
+  
+  if (phone.length < 8) {
+    showNotification("Phone number must be at least 8 characters long", "error");
+    return;
+  }
+  
+  // Check email uniqueness
+  const guests = Storage.getAll(STORAGE_KEY_GUESTS);
+  const isDuplicateEmail = guests.some(g => g.email.toLowerCase() === email.toLowerCase());
+  
+  if (isDuplicateEmail) {
+    showNotification("This email is already registered to another guest", "error");
+    return;
+  }
+  
+  // Create guest
+  const newGuest = {
+    id: generateId("guest"),
+    name,
+    email,
+    phone,
+    nid,
+    address,
+    createdAt: new Date().toISOString()
+  };
+  
+  Storage.save(STORAGE_KEY_GUESTS, newGuest);
+  showNotification("Guest added successfully", "success");
+  
+  document.getElementById("guest-form-modal").classList.remove("active");
+  resetGuestForm();
+  
+  const currentSearch = document.getElementById("guest-search")?.value || "";
+  renderGuestList(currentSearch);
+}
+
+function resetGuestForm() {
+  const form = document.getElementById("guest-form");
+  if (form) form.reset();
+  
+  const idInput = document.getElementById("guest-input-id");
+  if (idInput) idInput.value = "";
+  
+  const title = document.getElementById("guest-form-title");
+  if (title) title.textContent = "Add Guest";
+}
+
+function validateEmail(email) {
+  return email.includes("@") && email.includes(".");
 }
 
 function renderGuestList(searchTerm = "") {
