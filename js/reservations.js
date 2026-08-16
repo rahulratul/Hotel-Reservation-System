@@ -82,6 +82,15 @@ function renderReservationList(filters = {}) {
           <button type="button" class="btn btn-secondary res-btn-action res-btn-edit" title="Edit Reservation">
             ✏️ Edit
           </button>
+          <button type="button" class="btn btn-danger res-btn-action res-btn-cancel-action" title="Cancel Reservation">
+            🚫 Cancel
+          </button>
+        `;
+      } else if (res.status === "checked-in") {
+        actionButtons = `
+          <button type="button" class="btn btn-danger res-btn-action res-btn-cancel-action" title="Cancel Reservation">
+            🚫 Cancel
+          </button>
         `;
       }
 
@@ -416,6 +425,31 @@ function openEditReservationModal(reservationId) {
 }
 
 /**
+ * Cancels an active reservation after user confirmation.
+ * @param {string} reservationId - ID of the reservation to cancel.
+ */
+function cancelReservation(reservationId) {
+  const reservation = Storage.getById(STORAGE_KEY_RESERVATIONS, reservationId);
+  if (!reservation) {
+    showNotification("Reservation not found.", "error");
+    return;
+  }
+
+  if (reservation.status === "checked-out" || reservation.status === "cancelled") {
+    showNotification("Cannot cancel a completed or already cancelled reservation.", "error");
+    return;
+  }
+
+  const confirmed = window.confirm("Are you sure you want to cancel this reservation?");
+  if (confirmed) {
+    reservation.status = "cancelled";
+    Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
+    showNotification("Reservation cancelled successfully!", "success");
+    renderReservationList();
+  }
+}
+
+/**
  * Closes the Reservation modal and resets state.
  */
 function closeReservationModal() {
@@ -505,11 +539,19 @@ function setupReservationEventListeners() {
   if (tableBody) {
     tableBody.addEventListener("click", (e) => {
       const editBtn = e.target.closest(".res-btn-edit");
+      const cancelBtn = e.target.closest(".res-btn-cancel-action");
+
       if (editBtn) {
         const row = editBtn.closest("tr");
         if (row) {
           const resId = row.getAttribute("data-res-id");
           openEditReservationModal(resId);
+        }
+      } else if (cancelBtn) {
+        const row = cancelBtn.closest("tr");
+        if (row) {
+          const resId = row.getAttribute("data-res-id");
+          cancelReservation(resId);
         }
       }
     });
