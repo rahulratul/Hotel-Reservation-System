@@ -9,6 +9,7 @@ const STORAGE_KEY_GUESTS = "hrs_guests";
  */
 function initReservations() {
   renderReservationList();
+  setupReservationEventListeners();
 }
 
 /**
@@ -98,11 +99,411 @@ function renderReservationList(filters = {}) {
           </td>
           <td>
             <div class="res-actions-cell">
-              <!-- Action buttons will be added in upcoming commits -->
+              <!-- Action buttons will be configured in subsequent commits -->
             </div>
           </td>
         </tr>
       `;
     })
     .join("");
+}
+
+/**
+ * Searches for rooms that are available between the chosen check-in and check-out dates.
+ * @param {string} [excludeReservationId] - Optional reservation ID to exclude from conflict checks.
+ */
+function searchAvailableRooms(excludeReservationId) {
+  const checkInInput = document.getElementById("res-input-checkin");
+  const checkOutInput = document.getElementById("res-input-checkout");
+  const container = document.getElementById("res-available-rooms");
+  const stepDetails = document.getElementById("res-step-details");
+  const submitBtn = document.getElementById("res-btn-submit");
+  const hiddenRoomId = document.getElementById("res-input-room-id");
+
+  if (!checkInInput || !checkOutInput || !container) return;
+
+  const checkIn = checkInInput.value;
+  const checkOut = checkOutInput.value;
+
+  if (!checkIn || !checkOut) {
+    showNotification("Please select both check-in and check-out dates.", "error");
+    return;
+  }
+
+  if (checkOut <= checkIn) {
+    showNotification("Check-out date must be after check-in date.", "error");
+    return;
+  }
+
+  const excludeId =
+    excludeReservationId ||
+    (document.getElementById("res-input-id")
+      ? document.getElementById("res-input-id").value
+      : null);
+
+  const rooms = Storage.getAll(STORAGE_KEY_ROOMS);
+  const reservations = Storage.getAll(STORAGE_KEY_RESERVATIONS);
+
+  if (rooms.length === 0) {
+    container.innerHTML = `
+      <div class="res-no-rooms">
+        <p>No rooms found in the catalog. Please add rooms first.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const availableRooms = rooms.filter((room) =>
+    isRoomAvailable(room.id, checkIn, checkOut, reservations, excludeId)
+  );
+
+  if (availableRooms.length === 0) {
+    container.innerHTML = `
+      <div class="res-no-rooms">
+        <p>❌ No rooms available for these dates.</p>
+      </div>
+    `;
+    // If previously selected room is no longer available, reset selection
+    if (stepDetails) stepDetails.style.display = "none";
+    if (submitBtn) submitBtn.style.display = "none";
+    if (hiddenRoomId) hiddenRoomId.value = "";
+    return;
+  }
+
+  const currentSelectedRoomId = hiddenRoomId ? hiddenRoomId.value : null;
+
+  container.innerHTML = `
+    <div class="res-rooms-grid">
+      ${availableRooms
+        .map((room) => {
+          const isSelected = room.id === currentSelectedRoomId;
+          const amenitiesHtml =
+            Array.isArray(room.amenities) && room.amenities.length > 0
+              ? room.amenities
+                  .map(
+                    (a) =>
+                      `<span class="res-amenity-tag">${a.toUpperCase()}</span>`
+                  )
+                  .join("")
+              : "";
+
+          return `
+            <div class="res-room-card ${
+              isSelected ? "selected" : ""
+            }" data-room-id="${room.id}">
+              <div class="res-room-card-header">
+                <span class="res-room-card-number">Room ${room.roomNumber}</span>
+                <span class="res-room-card-type">${room.type}</span>
+              </div>
+              <div class="res-room-card-body">
+                <p class="res-room-card-price"><strong>$${room.pricePerNight}</strong> / night</p>
+                <p class="res-room-card-capacity">👥 Capacity: ${room.capacity} guest${room.capacity > 1 ? "s" : ""}</p>
+                ${
+                  amenitiesHtml
+                    ? `<div class="res-room-amenities">${amenitiesHtml}</div>`
+                    : ""
+                }
+              </div>
+              <div class="res-room-card-footer">
+                <button type="button" class="btn btn-sm ${
+                  isSelected ? "btn-primary" : "btn-secondary"
+                } res-btn-select-room" data-room-id="${room.id}">
+                  ${isSelected ? "Selected ✓" : "Select Room"}
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+/**
+ * Selects a room from the available search results and reveals Step 2.
+ * @param {string} roomId - ID of the selected room.
+ */
+function selectRoom(roomId) {
+  const hiddenRoomId = document.getElementById("res-input-room-id");
+  const selectedRoomBanner = document.getElementById("res-selected-room");
+  const priceSummary = document.getElementById("res-price-summary");
+  const stepDetails = document.getElementById("res-step-details");
+  const submitBtn = document.getElementById("res-btn-submit");
+  const checkInInput = document.getElementById("res-input-checkin");
+  const checkOutInput = document.getElementById("res-input-checkout");
+
+  if (!roomId || !hiddenRoomId || !checkInInput || !checkOutInput) return;
+
+  const room = Storage.getById(STORAGE_KEY_ROOMS, roomId);
+  if (!room) return;
+
+  hiddenRoomId.value = roomId;
+
+  const checkIn = checkInInput.value;
+  const checkOut = checkOutInput.value;
+  const nights = calculateNights(checkIn, checkOut);
+  const totalPrice = nights * room.pricePerNight;
+
+  // Render selected room banner
+  if (selectedRoomBanner) {
+    selectedRoomBanner.innerHTML = `
+      <div class="res-selected-room-info">
+        <span class="res-selected-title">Selected: <strong>Room ${room.roomNumber}</strong> (${room.type.toUpperCase()})</span>
+        <span class="res-selected-rate">$${room.pricePerNight} per night &bull; Capacity: ${room.capacity}</span>
+      </div>
+    `;
+  }
+
+  // Render price breakdown summary
+  if (priceSummary) {
+    priceSummary.innerHTML = `
+      <div class="res-price-breakdown">
+        <div class="res-price-row">
+          <span>Rate per night:</span>
+          <span>$${room.pricePerNight}</span>
+        </div>
+        <div class="res-price-row">
+          <span>Duration:</span>
+          <span>${nights} night${nights > 1 ? "s" : ""} (${formatDate(checkIn)} to ${formatDate(checkOut)})</span>
+        </div>
+        <div class="res-price-row res-price-total">
+          <span>Total Price:</span>
+          <span class="res-price-highlight">$${totalPrice}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Populate guest dropdown
+  populateGuestDropdown();
+
+  // Show Step 2 and submit button
+  if (stepDetails) stepDetails.style.display = "block";
+  if (submitBtn) submitBtn.style.display = "inline-flex";
+
+  // Update card selected visual states
+  const cards = document.querySelectorAll(".res-room-card");
+  cards.forEach((card) => {
+    const cardRoomId = card.getAttribute("data-room-id");
+    const btn = card.querySelector(".res-btn-select-room");
+    if (cardRoomId === roomId) {
+      card.classList.add("selected");
+      if (btn) {
+        btn.textContent = "Selected ✓";
+        btn.classList.remove("btn-secondary");
+        btn.classList.add("btn-primary");
+      }
+    } else {
+      card.classList.remove("selected");
+      if (btn) {
+        btn.textContent = "Select Room";
+        btn.classList.remove("btn-primary");
+        btn.classList.add("btn-secondary");
+      }
+    }
+  });
+}
+
+/**
+ * Populates the guest selection dropdown with registered guests.
+ * @param {string} [selectedGuestId] - Optional guest ID to pre-select.
+ */
+function populateGuestDropdown(selectedGuestId) {
+  const guestSelect = document.getElementById("res-input-guest");
+  if (!guestSelect) return;
+
+  const guests = Storage.getAll(STORAGE_KEY_GUESTS);
+
+  guestSelect.innerHTML = `<option value="">-- Select a Guest --</option>`;
+
+  if (guests.length === 0) {
+    guestSelect.innerHTML = `<option value="">No guests registered yet</option>`;
+    return;
+  }
+
+  guests.forEach((guest) => {
+    const option = document.createElement("option");
+    option.value = guest.id;
+    option.textContent = `${guest.name} (${guest.phone || guest.email || "No contact"})`;
+    if (selectedGuestId && guest.id === selectedGuestId) {
+      option.selected = true;
+    }
+    guestSelect.appendChild(option);
+  });
+}
+
+/**
+ * Opens the Reservation modal and prepares it for new entry.
+ */
+function openReservationModal() {
+  const modal = document.getElementById("res-form-modal");
+  const checkInInput = document.getElementById("res-input-checkin");
+  const checkOutInput = document.getElementById("res-input-checkout");
+  const formTitle = document.getElementById("res-form-title");
+
+  resetReservationForm();
+
+  if (formTitle) formTitle.textContent = "New Reservation";
+
+  // Set min dates to today
+  const today = getTodayString();
+  if (checkInInput) {
+    checkInInput.min = today;
+  }
+  if (checkOutInput) {
+    checkOutInput.min = today;
+  }
+
+  if (modal) {
+    modal.classList.add("active");
+  }
+}
+
+/**
+ * Closes the Reservation modal and resets state.
+ */
+function closeReservationModal() {
+  const modal = document.getElementById("res-form-modal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+  resetReservationForm();
+}
+
+/**
+ * Resets the Reservation form and temporary selection UI.
+ */
+function resetReservationForm() {
+  const form = document.getElementById("res-form");
+  const hiddenId = document.getElementById("res-input-id");
+  const hiddenRoomId = document.getElementById("res-input-room-id");
+  const container = document.getElementById("res-available-rooms");
+  const stepDetails = document.getElementById("res-step-details");
+  const submitBtn = document.getElementById("res-btn-submit");
+  const selectedRoomBanner = document.getElementById("res-selected-room");
+  const formTitle = document.getElementById("res-form-title");
+
+  if (form) form.reset();
+  if (hiddenId) hiddenId.value = "";
+  if (hiddenRoomId) hiddenRoomId.value = "";
+  if (formTitle) formTitle.textContent = "New Reservation";
+
+  if (container) {
+    container.innerHTML = `<p class="res-search-placeholder">Select check-in and check-out dates and click "Search Available Rooms".</p>`;
+  }
+  if (selectedRoomBanner) selectedRoomBanner.innerHTML = "";
+  if (stepDetails) stepDetails.style.display = "none";
+  if (submitBtn) submitBtn.style.display = "none";
+}
+
+/**
+ * Attaches event listeners for the Reservation module.
+ */
+function setupReservationEventListeners() {
+  // New Reservation Button
+  const btnAdd = document.getElementById("res-btn-add");
+  if (btnAdd) {
+    btnAdd.addEventListener("click", openReservationModal);
+  }
+
+  // Modal Close and Cancel Buttons
+  const btnClose = document.getElementById("res-btn-modal-close");
+  if (btnClose) {
+    btnClose.addEventListener("click", closeReservationModal);
+  }
+
+  const btnCancel = document.getElementById("res-btn-cancel");
+  if (btnCancel) {
+    btnCancel.addEventListener("click", closeReservationModal);
+  }
+
+  // Search Available Rooms Button
+  const btnSearch = document.getElementById("res-btn-search");
+  if (btnSearch) {
+    btnSearch.addEventListener("click", () => searchAvailableRooms());
+  }
+
+  // Room Card / Select Button delegation
+  const availableRoomsContainer = document.getElementById("res-available-rooms");
+  if (availableRoomsContainer) {
+    availableRoomsContainer.addEventListener("click", (e) => {
+      const selectBtn = e.target.closest(".res-btn-select-room");
+      const card = e.target.closest(".res-room-card");
+
+      if (selectBtn) {
+        const roomId = selectBtn.getAttribute("data-room-id");
+        selectRoom(roomId);
+      } else if (card) {
+        const roomId = card.getAttribute("data-room-id");
+        selectRoom(roomId);
+      }
+    });
+  }
+
+  // Reservation Form Submission
+  const form = document.getElementById("res-form");
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const checkInInput = document.getElementById("res-input-checkin");
+      const checkOutInput = document.getElementById("res-input-checkout");
+      const hiddenRoomId = document.getElementById("res-input-room-id");
+      const guestSelect = document.getElementById("res-input-guest");
+      const hiddenId = document.getElementById("res-input-id");
+
+      const checkIn = checkInInput ? checkInInput.value : "";
+      const checkOut = checkOutInput ? checkOutInput.value : "";
+      const roomId = hiddenRoomId ? hiddenRoomId.value : "";
+      const guestId = guestSelect ? guestSelect.value : "";
+      const resId = hiddenId ? hiddenId.value : "";
+
+      const validation = validateRequired([
+        { value: checkIn, name: "Check-in Date" },
+        { value: checkOut, name: "Check-out Date" },
+        { value: roomId, name: "Room Selection" },
+        { value: guestId, name: "Guest" }
+      ]);
+
+      if (!validation.valid) {
+        showNotification(validation.message, "error");
+        return;
+      }
+
+      if (checkOut <= checkIn) {
+        showNotification("Check-out date must be after check-in date.", "error");
+        return;
+      }
+
+      const room = Storage.getById(STORAGE_KEY_ROOMS, roomId);
+      if (!room) {
+        showNotification("Selected room not found.", "error");
+        return;
+      }
+
+      const nights = calculateNights(checkIn, checkOut);
+      const totalPrice = nights * room.pricePerNight;
+
+      if (!resId) {
+        // Create new reservation
+        const newReservation = {
+          id: generateId("res"),
+          guestId: guestId,
+          roomId: roomId,
+          checkIn: checkIn,
+          checkOut: checkOut,
+          nights: nights,
+          totalPrice: totalPrice,
+          status: "confirmed",
+          createdAt: new Date().toISOString()
+        };
+
+        Storage.save(STORAGE_KEY_RESERVATIONS, newReservation);
+        showNotification("Reservation created successfully!", "success");
+      }
+
+      closeReservationModal();
+      renderReservationList();
+    });
+  }
 }
