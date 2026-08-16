@@ -79,6 +79,9 @@ function renderReservationList(filters = {}) {
       let actionButtons = "";
       if (res.status === "confirmed") {
         actionButtons = `
+          <button type="button" class="btn btn-primary res-btn-action res-btn-checkin" title="Check-in Guest">
+            🔑 Check In
+          </button>
           <button type="button" class="btn btn-secondary res-btn-action res-btn-edit" title="Edit Reservation">
             ✏️ Edit
           </button>
@@ -425,6 +428,31 @@ function openEditReservationModal(reservationId) {
 }
 
 /**
+ * Handles checking in a guest for a confirmed reservation.
+ * @param {string} reservationId - ID of the reservation to check in.
+ */
+function checkInReservation(reservationId) {
+  const reservation = Storage.getById(STORAGE_KEY_RESERVATIONS, reservationId);
+  if (!reservation) {
+    showNotification("Reservation not found.", "error");
+    return;
+  }
+
+  if (reservation.status !== "confirmed") {
+    showNotification("Only confirmed reservations can be checked in.", "error");
+    return;
+  }
+
+  const room = Storage.getById(STORAGE_KEY_ROOMS, reservation.roomId);
+  const roomDisplay = room ? room.roomNumber : "Unknown";
+
+  reservation.status = "checked-in";
+  Storage.save(STORAGE_KEY_RESERVATIONS, reservation);
+  showNotification(`Guest checked in to Room ${roomDisplay}`, "success");
+  renderReservationList();
+}
+
+/**
  * Cancels an active reservation after user confirmation.
  * @param {string} reservationId - ID of the reservation to cancel.
  */
@@ -538,10 +566,17 @@ function setupReservationEventListeners() {
   const tableBody = document.getElementById("res-table-body");
   if (tableBody) {
     tableBody.addEventListener("click", (e) => {
+      const checkInBtn = e.target.closest(".res-btn-checkin");
       const editBtn = e.target.closest(".res-btn-edit");
       const cancelBtn = e.target.closest(".res-btn-cancel-action");
 
-      if (editBtn) {
+      if (checkInBtn) {
+        const row = checkInBtn.closest("tr");
+        if (row) {
+          const resId = row.getAttribute("data-res-id");
+          checkInReservation(resId);
+        }
+      } else if (editBtn) {
         const row = editBtn.closest("tr");
         if (row) {
           const resId = row.getAttribute("data-res-id");
