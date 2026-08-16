@@ -21,6 +21,7 @@ function initRooms() {
   const btnCloseModal = document.getElementById("room-btn-close-modal");
   const roomForm = document.getElementById("room-form");
   const inputType = document.getElementById("room-input-type");
+  const roomListContainer = document.getElementById("room-list");
 
   // Filter listener
   if (filterTypeSelect) {
@@ -64,6 +65,28 @@ function initRooms() {
     roomForm.addEventListener("submit", (e) => {
       e.preventDefault();
       handleRoomFormSubmit();
+    });
+  }
+
+  // Click handler delegation for cards (Edit & Delete actions)
+  if (roomListContainer) {
+    roomListContainer.addEventListener("click", (e) => {
+      const btnEdit = e.target.closest(".room-btn-edit");
+      const btnDelete = e.target.closest(".room-btn-delete");
+
+      if (btnEdit) {
+        const card = btnEdit.closest(".room-card");
+        if (card) {
+          const roomId = card.getAttribute("data-room-id");
+          handleEditRoom(roomId);
+        }
+      } else if (btnDelete) {
+        const card = btnDelete.closest(".room-card");
+        if (card) {
+          const roomId = card.getAttribute("data-room-id");
+          handleDeleteRoom(roomId);
+        }
+      }
     });
   }
 
@@ -160,6 +183,49 @@ function renderRoomCatalog(filters = { type: "all" }) {
 }
 
 /**
+ * Populates and opens the form modal in edit mode.
+ * @param {string} roomId
+ */
+function handleEditRoom(roomId) {
+  const room = Storage.getById(STORAGE_KEY_ROOMS, roomId);
+  if (!room) {
+    showNotification("Room not found.", "error");
+    return;
+  }
+
+  // Pre-fill form fields
+  document.getElementById("room-input-id").value = room.id;
+  document.getElementById("room-input-number").value = room.roomNumber;
+  document.getElementById("room-input-type").value = room.type;
+  document.getElementById("room-input-capacity").value = CAPACITY_MAP[room.type] || "";
+  document.getElementById("room-input-price").value = room.pricePerNight;
+  document.getElementById("room-input-floor").value = room.floor;
+  document.getElementById("room-input-description").value = room.description || "";
+
+  // Check matching amenities checkboxes
+  const checkboxes = document.querySelectorAll(".room-amenity-checkbox");
+  checkboxes.forEach(cb => {
+    cb.checked = room.amenities && room.amenities.includes(cb.value);
+  });
+
+  // Change modal header title
+  const modalTitle = document.getElementById("room-form-title");
+  if (modalTitle) {
+    modalTitle.textContent = "Edit Room";
+  }
+
+  showRoomModal();
+}
+
+/**
+ * Placeholder for deleting a room.
+ * @param {string} roomId
+ */
+function handleDeleteRoom(roomId) {
+  // TODO: Member A implements in Commit 4
+}
+
+/**
  * Handles adding/saving a room from the form modal.
  */
 function handleRoomFormSubmit() {
@@ -209,7 +275,7 @@ function handleRoomFormSubmit() {
   const capacity = CAPACITY_MAP[inputType];
 
   if (inputId) {
-    // Edit mode (Commit 3)
+    // Edit mode
     const existingRoom = Storage.getById(STORAGE_KEY_ROOMS, inputId);
     if (existingRoom) {
       const updatedRoom = {
