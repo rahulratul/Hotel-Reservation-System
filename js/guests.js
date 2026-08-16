@@ -29,6 +29,36 @@ function setupGuestFormListeners() {
   if (form) {
     form.addEventListener("submit", handleGuestSubmit);
   }
+
+  const tableBody = document.getElementById("guest-table-body");
+  if (tableBody) {
+    tableBody.addEventListener("click", handleTableClick);
+  }
+}
+
+function handleTableClick(e) {
+  const editBtn = e.target.closest(".guest-btn-edit");
+  
+  if (editBtn) {
+    const id = editBtn.getAttribute("data-id");
+    openEditModal(id);
+    return;
+  }
+}
+
+function openEditModal(id) {
+  const guest = Storage.getById(STORAGE_KEY_GUESTS, id);
+  if (!guest) return;
+  
+  document.getElementById("guest-form-title").textContent = "Edit Guest";
+  document.getElementById("guest-input-id").value = guest.id;
+  document.getElementById("guest-input-name").value = guest.name;
+  document.getElementById("guest-input-email").value = guest.email;
+  document.getElementById("guest-input-phone").value = guest.phone;
+  document.getElementById("guest-input-nid").value = guest.nid;
+  document.getElementById("guest-input-address").value = guest.address || "";
+  
+  document.getElementById("guest-form-modal").classList.add("active");
 }
 
 function handleGuestSubmit(e) {
@@ -71,26 +101,41 @@ function handleGuestSubmit(e) {
   
   // Check email uniqueness
   const guests = Storage.getAll(STORAGE_KEY_GUESTS);
-  const isDuplicateEmail = guests.some(g => g.email.toLowerCase() === email.toLowerCase());
+  const isDuplicateEmail = guests.some(g => g.email.toLowerCase() === email.toLowerCase() && g.id !== idInput);
   
   if (isDuplicateEmail) {
     showNotification("This email is already registered to another guest", "error");
     return;
   }
   
-  // Create guest
-  const newGuest = {
-    id: generateId("guest"),
-    name,
-    email,
-    phone,
-    nid,
-    address,
-    createdAt: new Date().toISOString()
-  };
+  // Create or update guest
+  let newGuest;
+  
+  if (idInput) {
+    const existingGuest = Storage.getById(STORAGE_KEY_GUESTS, idInput);
+    newGuest = {
+      ...existingGuest,
+      name,
+      email,
+      phone,
+      nid,
+      address
+    };
+    showNotification("Guest updated successfully", "success");
+  } else {
+    newGuest = {
+      id: generateId("guest"),
+      name,
+      email,
+      phone,
+      nid,
+      address,
+      createdAt: new Date().toISOString()
+    };
+    showNotification("Guest added successfully", "success");
+  }
   
   Storage.save(STORAGE_KEY_GUESTS, newGuest);
-  showNotification("Guest added successfully", "success");
   
   document.getElementById("guest-form-modal").classList.remove("active");
   resetGuestForm();
