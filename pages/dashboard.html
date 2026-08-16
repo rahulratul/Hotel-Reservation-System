@@ -80,3 +80,19 @@
     <p>No upcoming arrivals</p>
   </div>
 </div>
+
+<!-- Demo Data Controls -->
+<div class="dashboard-section dashboard-demo-controls">
+  <h3 class="dashboard-section-title">Demonstration Controls</h3>
+  <div class="dashboard-demo-actions">
+    <button type="button" id="dashboard-btn-seed" class="btn btn-primary" onclick="seedData(); if(typeof renderDashboard==='function') renderDashboard();">
+      <span>📦</span>
+      <span>Load Sample Data</span>
+    </button>
+    <button type="button" id="dashboard-btn-clear" class="btn btn-danger" onclick="clearAllData(); if(typeof renderDashboard==='function') renderDashboard();">
+      <span>🗑️</span>
+      <span>Clear All Data</span>
+    </button>
+  </div>
+</div>
+
