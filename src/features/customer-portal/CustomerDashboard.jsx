@@ -3,7 +3,8 @@ import React from "react";
 import { formatDate, HOTELS } from "../../utils/helpers";
 import { 
   Compass, Award, CalendarDays, DollarSign, 
-  Sparkles, CheckCircle2, ShieldCheck, HelpCircle 
+  Sparkles, CheckCircle2, ShieldCheck, HelpCircle,
+  Download, Edit, XCircle
 } from "lucide-react";
 
 export default function CustomerDashboard({ guest, reservations, rooms, onBookNewStay }) {
@@ -212,6 +213,7 @@ export default function CustomerDashboard({ guest, reservations, rooms, onBookNe
                   <th className="py-3 px-6 text-center">Nights</th>
                   <th className="py-3 px-6 text-right">Price</th>
                   <th className="py-3 px-6 text-center">Status</th>
+                  <th className="py-3 px-6 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-sm text-gray-300">
@@ -238,6 +240,25 @@ export default function CustomerDashboard({ guest, reservations, rooms, onBookNe
                         }`}>
                           {res.status === "checked-in" ? "Checked In" : res.status === "checked-out" ? "Checked Out" : res.status}
                         </span>
+                      </td>
+                      <td className="py-3 px-6 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          {res.status === 'checked-out' && (
+                            <button className="text-gray-400 hover:text-gold-400 transition-colors cursor-pointer" title="Download Invoice" onClick={() => alert('Downloading invoice...')}>
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
+                          {res.status === 'confirmed' && (
+                            <>
+                              <button className="text-gray-400 hover:text-blue-400 transition-colors cursor-pointer" title="Modify Booking" onClick={() => alert('Modify request initiated...')}>
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button className="text-gray-400 hover:text-red-400 transition-colors cursor-pointer" title="Cancel Booking" onClick={() => alert('Cancellation request initiated...')}>
+                                <XCircle className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

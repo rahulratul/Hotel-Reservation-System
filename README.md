@@ -38,10 +38,10 @@ A browser-based hotel reservation system for browsing rooms, making date-based r
 
 ## Technology Stack
 
-- **Structure**: Semantic HTML5 partials loaded dynamically
-- **Styling**: Vanilla CSS3 utilizing CSS custom properties, responsive grids, and modern layout techniques
-- **Logic**: Vanilla JavaScript (ES6+), modular architecture, event delegation
-- **Data Persistence**: Browser localStorage API
+- **Frontend Framework**: React 19 with Vite for ultra-fast development.
+- **Styling**: Tailwind CSS for responsive styling.
+- **Icons**: Lucide React for consistent and modern iconography.
+- **Data Persistence**: Browser localStorage API.
 
 ---
 
@@ -55,28 +55,18 @@ In this system, room objects do not possess a static `status` property. Room ava
 
 ```text
 Hotel-Reservation-System/
-├── index.html              # Main application shell with sidebar navigation
-├── README.md               # Project documentation
-├── css/
-│   ├── global.css          # Shared design system variables, resets, components
-│   ├── rooms.css           # Room catalog module styles
-│   ├── reservations.css    # Reservation system module styles
-│   └── guests.css          # Guest directory and dashboard styles
-├── js/
-│   ├── storage.js          # Unified LocalStorage CRUD abstraction
-│   ├── utils.js            # Shared helper functions (ID, date, availability)
-│   ├── rooms.js            # Room catalog controller logic
-│   ├── reservations.js     # Reservation management controller logic
-│   ├── guests.js           # Guest directory controller logic
-│   ├── dashboard.js        # Dashboard overview controller logic
-│   ├── seed.js             # Sample demonstration data generator
-│   └── app.js              # Application router and partial loader
-├── pages/
-│   ├── dashboard.html      # Dashboard view partial
-│   ├── rooms.html          # Room catalog view partial
-│   ├── reservations.html   # Reservations view partial
-│   └── guests.html         # Guest management view partial
-└── docs/                   # Specification and task documents
+├── src/
+│   ├── assets/             # Images and static assets
+│   ├── components/         # Reusable UI components (Modals, Toasts)
+│   ├── features/           # Feature-specific modules (Dashboard, Rooms)
+│   ├── utils/              # Helper functions and Storage abstractions
+│   ├── App.jsx             # Main application component and routing logic
+│   ├── main.jsx            # React entry point
+│   └── index.css           # Global Tailwind and custom styles
+├── public/                 # Public assets (Favicons, etc.)
+├── package.json            # Project dependencies and NPM scripts
+├── vite.config.js          # Vite configuration
+└── README.md               # Project documentation
 ```
 
 ---
@@ -89,14 +79,17 @@ Hotel-Reservation-System/
    cd Hotel-Reservation-System
    ```
 
-2. Start a local HTTP server:
+2. Install dependencies:
    ```bash
-   # Using Python 3
-   python -m http.server 8000
+   npm install
    ```
-   Or open the folder in VS Code and use the **Live Server** extension.
 
-3. Navigate to `http://localhost:8000` in your web browser.
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Navigate to the local URL (usually `http://localhost:5173`) in your web browser.
 
 ---
 
