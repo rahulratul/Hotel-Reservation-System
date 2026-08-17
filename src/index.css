@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Premium Dark Gold Palette */
+  --color-gold-50: #faf7eb;
+  --color-gold-100: #f3ebd0;
+  --color-gold-200: #e7d6a1;
+  --color-gold-300: #dbbd72;
+  --color-gold-400: #cf9f43;
+  --color-gold-500: #c5862c;
+  --color-gold-600: #ad6d22;
+  --color-gold-700: #8c531d;
+  --color-gold-800: #6d3f18;
+  --color-gold-900: #553114;
+  --color-gold-950: #331b09;
+  
+  --color-gold-primary: #c5862c;
+  --color-gold-hover: #ad6d22;
+  
+  --color-dark-900: #0b0f19;
+  --color-dark-800: #111827;
+  --color-dark-700: #1f2937;
+  --color-dark-600: #374151;
+}
+
+/* Custom Scrollbar Styles for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c5862c;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #0b0f19;
+  color: #f3f4f6;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+}
+
+/* Smooth Fade and Slide Transitions */
+.page-transition {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom Glassmorphism Utility */
+.glass-panel {
+  background: rgba(22, 29, 48, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(197, 134, 44, 0.4);
+  box-shadow: 0 0 15px rgba(197, 134, 44, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
